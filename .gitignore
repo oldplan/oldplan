@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.session
+*.session-journal
+*.db
+*.db-shm
+*.db-wal
+backup_data.json
+otp_bot_data.json
+otp_errors.log
+users.json

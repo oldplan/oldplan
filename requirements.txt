@@ -1,0 +1,6 @@
+telethon
+psutil
+httpx
+websockets
+phonenumbers
+langdetect
