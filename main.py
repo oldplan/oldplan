@@ -2476,7 +2476,8 @@ async def main():
     # even after the new token is in place. Drop stale session files so the
     # client always re-authenticates with the current BOT_TOKEN.
     import os, glob
-    for sess_path in glob.glob("premium_bot_session.session*"):
+    from config import _DB_DIR
+    for sess_path in glob.glob(os.path.join(_DB_DIR, "premium_bot_session.session*")):
         try:
             os.remove(sess_path)
             print(f"[Startup] Cleared stale Telethon session: {sess_path}")

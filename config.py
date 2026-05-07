@@ -2,6 +2,9 @@
 config.py — Central config + runtime state for the OTP Forwarder Bot.
 """
 
+import os
+import sqlite3
+import tempfile
 import time
 from telethon import TelegramClient
 
@@ -13,12 +16,46 @@ BOT_USERNAME   = "@Pers09nalbot"
 ADMIN_USERNAME = "mutemic"
 OWNER_ID       = 5048281046
 
+# ── SQLite-safe directory ─────────────────────────────────────────────────────
+# Android's /sdcard (FAT32/FUSE) doesn't support SQLite file locking, which
+# causes "sqlite3.OperationalError: attempt to write a readonly database".
+# Auto-detect the first directory that can host an SQLite database.
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def _find_sqlite_dir() -> str:
+    """Return the first directory that can actually host an SQLite database."""
+    for d in (_SCRIPT_DIR, os.path.expanduser("~"), tempfile.gettempdir()):
+        if not os.path.isdir(d):
+            continue
+        test_db = os.path.join(d, ".sqlite_write_test.db")
+        try:
+            conn = sqlite3.connect(test_db, timeout=5)
+            conn.execute("CREATE TABLE IF NOT EXISTS _t(x)")
+            conn.execute("INSERT INTO _t VALUES(1)")
+            conn.commit()
+            conn.close()
+            os.remove(test_db)
+            return d
+        except Exception:
+            try:
+                os.remove(test_db)
+            except Exception:
+                pass
+    return _SCRIPT_DIR
+
+
+_DB_DIR = _find_sqlite_dir()
+if _DB_DIR != _SCRIPT_DIR:
+    print(f"[Config] ⚠️ Script dir doesn't support SQLite; using {_DB_DIR} for DB files.")
+
 # ── Persistence ────────────────────────────────────────────────────────────────
 DATA_FILE        = "otp_bot_data.json"
 LEGACY_DATA_FILE = "otp_bot_data.pkl"
 
 # ── Telethon client ────────────────────────────────────────────────────────────
-bot = TelegramClient("premium_bot_session", API_ID, API_HASH)
+_SESSION_PATH = os.path.join(_DB_DIR, "premium_bot_session")
+bot = TelegramClient(_SESSION_PATH, API_ID, API_HASH)
 
 # ── Uptime ─────────────────────────────────────────────────────────────────────
 start_time = time.time()
@@ -54,5 +91,5 @@ user_conn_statuses: dict = {}
 # {user_id: UserSession}
 user_sessions: dict = {}
 
-SQLITE_DB_FILE   = "bot_data.db"
-JSON_BACKUP_FILE = "backup_data.json"
+SQLITE_DB_FILE   = os.path.join(_DB_DIR, "bot_data.db")
+JSON_BACKUP_FILE = os.path.join(_DB_DIR, "backup_data.json")
