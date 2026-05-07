@@ -960,7 +960,7 @@ async def _do_import_all(event, user_id):
             skipped += 1
 
     save_data()
-    for cfg in cfgs:
+    for cfg in cfgs[-added:] if added else []:
         if cfg.enabled:
             await start_ws_for_user(user_id, cfg)
     await _cleanup_session(user_id, session)
@@ -2486,22 +2486,9 @@ async def main():
     await bot.start(bot_token=BOT_TOKEN)
     _start_subscription_scheduler_task()
 
-    # Start debounced persistence — uses sqlite_db.save_data (the real one)
-    from sqlite_db import save_data as _supa_save_data
-
-    async def _debounced_supa_save_loop():
-        import core as _core
-        while True:
-            await asyncio.sleep(10)
-            if _core._save_dirty:
-                async with _core._get_save_lock():
-                    _core._save_dirty = False
-                    try:
-                        await loop.run_in_executor(None, _supa_save_data)
-                    except Exception as e:
-                        print(f"[{datetime.now(_IST)}] ❌ Debounced save error: {e}")
-
-    asyncio.create_task(_debounced_supa_save_loop())
+    # Start debounced persistence (defined in core.py, uses sqlite_db.save_data)
+    from core import _debounced_save_loop
+    asyncio.create_task(_debounced_save_loop())
 
     me  = await bot.get_me()
     now = datetime.now(_IST)

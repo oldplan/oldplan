@@ -63,7 +63,8 @@ def _expiry_str(expiry: datetime | None) -> str:
 
 
 def _days_left_str(expiry: datetime) -> str:
-    delta = expiry - datetime.now()
+    now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
+    delta = expiry - now
     hours = int(delta.total_seconds() // 3600)
     if hours >= 48:
         return f"{delta.days} days"
@@ -89,7 +90,10 @@ def has_access(user_id: int) -> bool:
     if plan == "none":
         return False
     expiry = udata.get("expiry")
-    return expiry is None or datetime.now() < expiry
+    if expiry is None:
+        return True
+    now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
+    return now < expiry
 
 
 async def grant_plan_and_notify(
@@ -184,7 +188,7 @@ def _check_reminder_needed(udata: dict, flag: str, hours: int) -> bool:
     expiry = udata.get("expiry")
     if expiry is None:
         return False
-    now = datetime.now()
+    now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
     hours_left = (expiry - now).total_seconds() / 3600
     return 0 < hours_left <= hours
 
@@ -202,7 +206,7 @@ async def _subscription_tick():
     """
     from config import users_data  # import late to avoid circular
 
-    now     = datetime.now()
+    now     = datetime.now()   # naive — compared safely below
     changed = False
 
     for uid, udata in list(users_data.items()):
@@ -232,7 +236,8 @@ async def _subscription_tick():
                 )
 
         # ── Auto-expiry ────────────────────────────────────────────────────
-        if now >= expiry:
+        cmp_now = datetime.now(expiry.tzinfo) if expiry.tzinfo else now
+        if cmp_now >= expiry:
             if not udata.get("expired_notified"):
                 udata["expired_notified"] = True
                 changed = True

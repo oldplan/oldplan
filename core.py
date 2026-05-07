@@ -54,6 +54,7 @@ def _get_save_lock() -> asyncio.Lock:
     return _save_lock
 
 _shared_ssl = ssl._create_unverified_context()  # reuse across all WS connections
+_entity_cache: dict[int, object] = {}           # resolved Telegram entities
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1181,7 +1182,10 @@ def is_plan_active(user_id: int) -> bool:
     if plan == "none":
         return False
     expiry = get_user_expiry(user_id)
-    return expiry is None or datetime.now() < expiry
+    if expiry is None:
+        return True
+    now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
+    return now < expiry
 
 
 def get_plan_limit(user_id: int):
@@ -1198,9 +1202,12 @@ def grant_plan(user_id: int, plan: str, days: int | None = None):
     if days is not None:
         current_expiry = udata.get("expiry")
         now = datetime.now()
-        if current_expiry and current_expiry > now:
-            udata["expiry"] = current_expiry + timedelta(days=days)
-        else:
+        try:
+            if current_expiry and current_expiry > now:
+                udata["expiry"] = current_expiry + timedelta(days=days)
+            else:
+                udata["expiry"] = now + timedelta(days=days)
+        except TypeError:
             udata["expiry"] = now + timedelta(days=days)
     else:
         udata["expiry"] = None
