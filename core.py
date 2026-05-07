@@ -1227,7 +1227,7 @@ def expiry_display(user_id: int) -> str:
     expiry = get_user_expiry(user_id)
     if expiry is None:
         return "♾️ Permanent"
-    now = datetime.now()
+    now = datetime.now(expiry.tzinfo) if expiry.tzinfo else datetime.now()
     if now > expiry:
         return f"❌ Expired ({expiry.strftime('%Y-%m-%d')})"
     return f"📅 {expiry.strftime('%Y-%m-%d')} ({(expiry - now).days}d left)"
