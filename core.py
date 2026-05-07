@@ -266,7 +266,7 @@ class OTPConfig:
     @classmethod
     def from_dict(cls, data: dict) -> "OTPConfig":
         cfg = cls(
-            data["name"], data["group_id"], data["topic_id"],
+            data["name"], data["group_id"], data.get("topic_id"),
             data["websocket_url"], data["token"], data["user"],
             data.get("description", ""),
             data.get("mask_number", True),
@@ -928,19 +928,15 @@ def generate_message(info: dict, cfg: OTPConfig, display_number: str, current_ti
 # ══════════════════════════════════════════════════════════════════════════════
 
 def save_data():
-    import config as _cfg
-    serialized = {}
-    for uid, udata in _cfg.users_data.items():
-        expiry = udata.get("expiry")
-        extra_fields = {k: v for k, v in udata.items() if k not in {"plan", "expiry", "configs"}}
-        serialized[str(uid)] = {
-            "plan":    udata.get("plan", "none"),
-            "expiry":  expiry.isoformat() if isinstance(expiry, datetime) else None,
-            "configs": [c.to_dict() for c in udata.get("configs", [])],
-            **extra_fields,
-        }
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump({"users": serialized}, f, ensure_ascii=False, indent=2)
+    """Persist users_data via the primary SQLite backend.
+
+    This delegates to sqlite_db.save_data() which writes to SQLite
+    (primary) and a JSON backup (secondary).  The legacy JSON-only
+    code path has been removed to prevent data-loss when grant_plan /
+    revoke_plan call save_data() from within core.py.
+    """
+    from sqlite_db import save_data as _sqlite_save
+    _sqlite_save()
 
 
 def load_data():
