@@ -126,12 +126,26 @@ async def grant_plan_and_notify(
     plan_label = PLAN_DISPLAY.get(plan, plan.title())
     dur_text   = _expiry_str(expiry)
 
+    # Re-enable previously disabled configs and restart their WebSockets
+    configs = get_user_configs(user_id)
+    restarted = 0
+    for c in configs:
+        if not c.enabled:
+            c.enabled = True
+            restarted += 1
+    if restarted:
+        save_data()
+    for c in configs:
+        if c.enabled:
+            await start_ws_for_user(user_id, c)
+
+    restart_msg = f"\n🔄 <b>{restarted}</b> config(s) re-enabled automatically." if restarted else ""
     await _notify(
         user_id,
         f"🎉 <b>Subscription Activated!</b>\n\n"
         f"💼 Plan: <b>{plan_label}</b>\n"
-        f"⏳ Expires: {dur_text}\n\n"
-        f"✨ Your OTP forwarding is now active. Use /start to begin."
+        f"⏳ Expires: {dur_text}{restart_msg}\n\n"
+        f"✨ Your OTP forwarding is now active."
     )
 
 
@@ -142,13 +156,22 @@ async def revoke_plan_and_notify(user_id: int):
     udata["plan"]   = "none"
     udata["expiry"] = None
     _reset_reminder_flags(udata)
+
+    # Disable all configs and stop WebSockets
+    for c in udata.get("configs", []) or []:
+        try:
+            c.enabled = False
+        except Exception:
+            pass
     save_data()
     await stop_all_ws_for_user(user_id)
+
     await _notify(
         user_id,
         f"🚫 <b>Subscription Removed</b>\n\n"
         f"Your <b>{PLAN_DISPLAY.get(old_plan, old_plan)}</b> plan has been removed by the admin.\n"
-        f"Contact admin to renew."
+        f"All configs have been disabled.\n"
+        f"Contact admin to renew — your configs will be re-enabled automatically."
     )
 
 
