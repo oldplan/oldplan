@@ -1,10 +1,6 @@
 # 💫 About Me:
-- 🔭 Working on — Telegram & WhatsApp bot<br>- 👯 Collaborate on — Bot dev & web automation<br>- 🤝 Help with — Scaling bots & AI integrations<br>- 🌱 Learning — Kotlin, MongoDB, bot architecture ect..<br>- 💬 Ask me about — Python, bots & web dev<br>
+ - 🔭 Working on — Telegram & WhatsApp bot<br>- 👯 Collaborate on — Bot dev & web automation<br>- 🤝 Help with — Scaling bots & AI integrations<br>- 🌱 Learning — Kotlin, MongoDB, bot architecture ect..<br>- 💬 Ask me about — Python, bots & web dev<br>
 
-# 📊 GitHub Stats:
-![](https://github-readme-stats.vercel.app/api?username=Oldplan&theme=dark&hide_border=false&include_all_commits=false&count_private=false)<br/>
-![](https://nirzak-streak-stats.vercel.app/?user=Oldplan&theme=dark&hide_border=false)<br/>
-![](https://github-readme-stats.vercel.app/api/top-langs/?username=Oldplan&theme=dark&hide_border=false&include_all_commits=false&count_private=false&layout=compact)
 
 ## 🏆 GitHub Trophies
 ![](https://github-profile-trophy.vercel.app/?username=Oldplan&theme=radical&no-frame=false&no-bg=true&margin-w=4)
