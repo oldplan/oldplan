@@ -1,5 +1,5 @@
 # 💫 About Me:
- - 🔭 Working on — Telegram & WhatsApp bot<br>- 👯 Collaborate on — Bot dev & web automation<br>- 🤝 Help with — Scaling bots & AI integrations<br>- 🌱 Learning — Kotlin, MongoDB, bot architecture ect..<br>- 💬 Ask me about — Python, bots & web dev<br>
+ - 🔭 Working on — Telegram & WhatsApp bot<br>- 👯 Collaborate on — Bot dev & web automation<br>- 🤝 Help with — Scaling bots & AI integrations<br>- 🌱 Learning — app dev, js, bot architecture ect..<br>- 💬 Ask me about — Python, bots & web dev<br>
 
 
 ## 🏆 GitHub Trophies
